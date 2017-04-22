@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>百度网盘直链提取平台</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+    .container-fluid {
+        margin-top: 5%; 
+    }
+
+    .form-inline {
+        margin-top: 3%;
+    }
+    
+    .labelLink {
+        margin-right: 0.5%;
+    }
+    
+    .labelPass {
+        margin-left: 2%;
+        margin-right: 0.5%;
+    }
+    
+    button {
+        margin-left: 1%;
+    }
+    
+    .result {
+        margin-top: 2%;
+    }
+    
+    label {
+        font-size: 16px;
+    }
+    
+    .result a {
+        margin-right: 20px;
+        font-size: 18px;
+    }
+    
+    .tips {
+        margin-top: 20px;
+    }
+    
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid text-center">
+    <h2 class="text-primary"><a href="/" style="text-decoration:none;">百度网盘直链在线转换</a></h2>
+    <form class="form-inline" action="/" method="post">
+        <label class="labelLink text-primary">链接:</label>
+        <input name="panUrl" type="text" class="form-control" placeholder="请输入百度网盘外链" style="width:25%;">
+        <label class="labelPass text-primary">密码:</label>
+        <input name="panPass" type="text" class="form-control"  placeholder="没有请留空" style="width:10%">
+        <button type="submit" class="btn">生成直连</button>
+    </form>
+    {% if dlink %}
+    <div class="container-fluid result">
+        <a href="{{ dlink['link1'] }}">地址1(推荐)</a>
+        <a href="{{ dlink['link2'] }}">地址2(推荐)</a>
+        <a href="{{ dlink['link3'] }}">地址3</a>
+        <a href="{{ dlink['link4'] }}">地址4</a>
+        <div class="tips"><span class ="text-warning">温馨提示：下载前请在浏览器中打开下载链接测试下载链接是否有效</span></div>   
+    </div>
+    {% endif %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </body>
+</html>
