@@ -11,16 +11,18 @@
     }
 
     .form-inline {
-        margin-top: 3%;
+        margin-top: 2%;
     }
     
-    .labelLink {
+    #linkNode {
         margin-right: 0.5%;
+        width: 25%;
     }
     
-    .labelPass {
+    #passNode {
         margin-left: 2%;
         margin-right: 0.5%;
+        width: 11%;
     }
     
     button {
@@ -31,9 +33,6 @@
         margin-top: 2%;
     }
     
-    label {
-        font-size: 16px;
-    }
     
     .result a {
         margin-right: 20px;
@@ -44,17 +43,31 @@
         margin-top: 20px;
     }
     
+    .input-group-addon {
+        width: 39px;
+    }
+    
+    .text-danger {
+        font-size: 16px;
+    }
     </style>
   </head>
   <body>
     <div class="container-fluid text-center">
     <h2 class="text-primary"><a href="/" style="text-decoration:none;">百度网盘直链在线转换</a></h2>
+    <label class="text-danger">PS: 仅支持单文件下载</label>    
     <form class="form-inline" action="/" method="post">
-        <label class="labelLink text-primary">链接:</label>
-        <input name="panUrl" type="text" class="form-control" placeholder="请输入百度网盘外链" style="width:25%;">
-        <label class="labelPass text-primary">密码:</label>
-        <input name="panPass" type="text" class="form-control"  placeholder="没有请留空" style="width:10%">
-        <button type="submit" class="btn">生成直连</button>
+        <!--<label class="labelLink text-primary">链接:</label>-->
+        <div class="input-group" id="linkNode">
+        <span class="input-group-addon" style="width:39px;"><i class="glyphicon glyphicon-link"></i></span>
+        <input name="panUrl" type="text" class="form-control" placeholder="请输入百度网盘外链">
+        </div>
+        <!--<label class="labelPass text-primary">密码:</label>-->
+        <div class="input-group" id="passNode">
+        <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+        <input name="panPass" type="text" class="form-control"  placeholder="没有请留空">
+        </div>
+        <button type="submit" class="btn"><i class="glyphicon glyphicon-refresh"></i></button>
     </form>
     {% if dlink %}
     <div class="container-fluid result">
