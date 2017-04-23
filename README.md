@@ -10,4 +10,4 @@ pip3 install jinja2
 
 Start server:  python app.py
 
-[Demo](http://pan.5inb4d.com)
+<a href="http://pan.5inb4d.com" target="_blank">Demo</a>
