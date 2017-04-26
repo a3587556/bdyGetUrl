@@ -1,6 +1,8 @@
 from urllib import request
 from urllib import parse
 from getUrlContentWithPass import getUrlContentWithPass
+from bs4 import BeautifulSoup
+import pymongo
 import requests
 import re
 import json
@@ -38,17 +40,27 @@ def generateLink(content,url,cookie,sekey=None):
         result = request.urlopen(req1)
         contentJson = json.loads(result.read().decode('utf8'))
         dlink = contentJson['list'][0]['dlink']
-        headers302 = {
-            'Cookie': cookie,
-            'Referer': url,
-            'Host': 'd.pcs.baidu.com',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-        res = requests.get(dlink, headers=headers302, allow_redirects=False)
-        tempLink = res.headers['Location']
-        hashLink = tempLink.split('file/')[1]
+        fileMd5 = contentJson['list'][0]['md5']
+
+        connection = pymongo.MongoClient('localhost', 27017)
+        db = connection['files']
+        cache = db['file_md5']
+        if (db.cache.find({'md5': fileMd5}, ['dlink']).count() > 0):
+            for d in db.cache.find({'md5': fileMd5}, ['dlink']):
+                hashLink = d['dlink']
+        else:
+            headers302 = {
+                'Cookie': cookie,
+                'Referer': url,
+                'Host': 'd.pcs.baidu.com',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+            res = requests.get(dlink, headers=headers302, allow_redirects=False)
+            tempLink = res.headers['Location']
+            hashLink = tempLink.split('file/')[1]
+            db.cache.insert_one({'md5': fileMd5, 'dlink': hashLink})
         link1 = 'http://nb.cache.baidupcs.com/file/'+hashLink
         link2 = 'http://pcs.dcdn.baidu.com/file/'+hashLink
         link3 = 'http://nb.poms.baidupcs.com/file/'+hashLink
@@ -71,7 +83,9 @@ def getUrl(panUrl, panPass=None):
         
         with request.urlopen(req) as f:
             content = f.read().decode('utf-8')
-            return generateLink(content,url,cookie)
+            soup = BeautifulSoup(content)
+            sourceData = "".join(soup.select('script')[-1].contents)
+            return generateLink(content=sourceData,url=url,cookie=cookie)
     else:
         result = getUrlContentWithPass(panUrl, panPass)
         content = result['content']
