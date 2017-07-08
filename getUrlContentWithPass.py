@@ -11,7 +11,6 @@ def getUrlContentWithPass(url, password):
     }
     
     f = requests.get(url, headers=headers, allow_redirects=False)
-    #print(f.headers['Location'])
     initUrl = f.headers['Location']
     temp = initUrl.split('?')[1]
     dictUrl = {}
@@ -19,7 +18,6 @@ def getUrlContentWithPass(url, password):
         dictUrl[key_value.split('=')[0]] = key_value.split('=')[1]
     shareid = dictUrl['shareid']
     uk = dictUrl['uk']
-    #print('%s %s' % (shareid, uk)) 
 
     veriUrl = 'https://pan.baidu.com/share/verify?shareid='+shareid+'&uk='+uk   
     data = {

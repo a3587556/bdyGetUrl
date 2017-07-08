@@ -6,8 +6,46 @@ import pymongo
 import requests
 import re
 import json
+from postData import postData
 
 def generateLink(content,url,cookie,sekey=None):
+    if 'fs_id' in content:
+        apiUrl = "https://pan.baidu.com/api/sharedownload?sign="+postData.sign+"&timestamp="+postData.timestamp
+        headers = {
+            "Referer": "https://pan.baidu.com/share/link?shareid="+postData.shareid+"&uk="+postData.uk,
+            "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/2008052906 Firefox/3.0",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        data = {
+            "encrypt": 0,
+            "product": "share",
+            "uk": postData.uk,
+            "primaryid": postData.shareid,
+            "fid_list": "["+postData.fs_id+"]"
+        }
+        if sekey is not None:
+            data['extra'] = sekey
+            
+        params = parse.urlencode(data).encode(encoding='UTF8')
+        req1 = request.Request(apiUrl, params, headers)
+        result = request.urlopen(req1)
+        contentJson = json.loads(result.read().decode('utf8'))
+        lists = contentJson['list']
+        for index,list in enumerate(lists):
+            headers302 = {
+                'Cookie': cookie,
+                'Referer': url,
+                'Host': 'd.pcs.baidu.com',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+            res = requests.get(list['dlink'], headers=headers302, allow_redirects=False)
+            tempLink = res.headers['Location']
+            lists[index]['dlink'] = tempLink
+        return lists
+
+def getPostData(content, postData):
     if 'fs_id' in content:
         regex_fs_id = re.compile('"fs_id":([0-9]+)', re.S)
         fs_id = regex_fs_id.findall(content)
@@ -19,59 +57,12 @@ def generateLink(content,url,cookie,sekey=None):
         uk = regex_uk.findall(content)
         regex_shareid = re.compile('"shareid":([0-9]+)', re.S)
         shareid = regex_shareid.findall(content)
-        apiUrl = "https://pan.baidu.com/api/sharedownload?sign="+sign[0]+"&timestamp="+timestamp[0]
-        headers = {
-            "Referer": "https://pan.baidu.com/share/link?shareid="+shareid[0]+"&uk="+uk[0],
-            "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/2008052906 Firefox/3.0",
-            "X-Requested-With": "XMLHttpRequest"
-        }
-        data = {
-            "encrypt": 0,
-            "product": "share",
-            "uk": uk[0],
-            "primaryid": shareid[0],
-            "fid_list": "["+fs_id[0]+"]"
-        }
-        if sekey is not None:
-            data['extra'] = sekey
-            
-        params = parse.urlencode(data).encode(encoding='UTF8')
-        req1 = request.Request(apiUrl, params, headers)
-        result = request.urlopen(req1)
-        contentJson = json.loads(result.read().decode('utf8'))
-        dlink = contentJson['list'][0]['dlink']
-        fileMd5 = contentJson['list'][0]['md5']
 
-        connection = pymongo.MongoClient('localhost', 27017)
-        db = connection['files']
-        cache = db['file_md5']
-        if (db.cache.find({'md5': fileMd5}, ['dlink']).count() > 0):
-            for d in db.cache.find({'md5': fileMd5}, ['dlink']):
-                hashLink = d['dlink']
-        else:
-            headers302 = {
-                'Cookie': cookie,
-                'Referer': url,
-                'Host': 'd.pcs.baidu.com',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-            res = requests.get(dlink, headers=headers302, allow_redirects=False)
-            tempLink = res.headers['Location']
-            hashLink = tempLink.split('file/')[1]
-            db.cache.insert_one({'md5': fileMd5, 'dlink': hashLink})
-        link1 = 'http://nb.cache.baidupcs.com/file/'+hashLink
-        link2 = 'http://pcs.dcdn.baidu.com/file/'+hashLink
-        link3 = 'http://nb.poms.baidupcs.com/file/'+hashLink
-        link4 = dlink
-        link = {
-            'link1': link1,
-            'link2': link2,
-            'link3': link3,
-            'link4': link4
-        }
-        return link
+        postData.fs_id = fs_id[0]
+        postData.sign = sign[0]
+        postData.timestamp = timestamp[0]
+        postData.shareid = shareid[0]
+        postData.uk = uk[0]
 
 def getUrl(panUrl, panPass=None):
     if panPass is None:
@@ -85,6 +76,14 @@ def getUrl(panUrl, panPass=None):
             content = f.read().decode('utf-8')
             soup = BeautifulSoup(content)
             sourceData = "".join(soup.select('script')[-1].contents)
+            getPostData(content=sourceData,postData=postData)
+            if ("yunData.FILEINFO =" in sourceData):
+                regex_yundata_contents = re.compile('yunData\.FILEINFO = \[(.*?)\];', re.S)
+                yundata_fileinfo_contents = regex_yundata_contents.findall(sourceData)
+                regex_fid_lists = re.compile('"fs_id":([0-9]+)', re.S)
+                fis_lists = regex_fid_lists.findall(yundata_fileinfo_contents[0])
+                fis_lists_str = ",".join(fis_lists)
+                postData.fs_id = fis_lists_str
             return generateLink(content=sourceData,url=url,cookie=cookie)
     else:
         result = getUrlContentWithPass(panUrl, panPass)
@@ -92,6 +91,14 @@ def getUrl(panUrl, panPass=None):
         linkUrl = result['referer']
         cookie = 'BAIDUID=E1A86A79C89DFC76D38899822435B3D5:FG=1; PANWEB=1; BDCLND='+result['BDCLND']
         sekey = json.dumps({"sekey": parse.unquote(result['BDCLND'])})
+        getPostData(content=content, postData=postData)
+        if ("yunData.FILEINFO =" in content):
+            regex_yundata_contents = re.compile('yunData\.FILEINFO = \[(.*?)\];', re.S)
+            yundata_fileinfo_contents = regex_yundata_contents.findall(content)
+            regex_fid_lists = re.compile('"fs_id":([0-9]+)', re.S)
+            fis_lists = regex_fid_lists.findall(yundata_fileinfo_contents[0])
+            fis_lists_str = ",".join(fis_lists)
+            postData.fs_id = fis_lists_str
         return generateLink(content,linkUrl,cookie,sekey)
         
 
