@@ -12,6 +12,7 @@
 
     .form-inline {
         margin-top: 2%;
+        margin-bottom: 2%;
     }
     
     #linkNode {
@@ -30,7 +31,7 @@
     }
     
     .result {
-        margin-top: 2%;
+        margin-top: 10px;
     }
     
     
@@ -55,7 +56,7 @@
   <body>
     <div class="container-fluid text-center">
         <h2 class="text-primary"><a href="/" style="text-decoration:none;">百度网盘直链在线转换</a></h2>
-        <label class="text-danger">PS: 暂不支持文件夹下载</label>
+        <label class="text-danger">PS: 支持单文件、多文件及文件夹下载</label>
         <form class="form-inline" action="/" method="post">
             <!--<label class="labelLink text-primary">链接:</label>-->
             <div class="input-group" id="linkNode">
@@ -71,13 +72,20 @@
         </form>
         {% if linkData %}
           {% for data in linkData %}
-             <div class="container-fluid result" style="width:40%;text-align:left;">
-                 <label style="font-size:18px; color:#5E5E5E; margin-right:15px">{{ data['server_filename'] }}</label>
-                 <a href="http://nb.cache.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址1(推荐)</a>
-                 <a href="http://pcs.dcdn.baidu.com/file/{{ data['dlink'].split('file/')[1] }}">地址2(推荐)</a>
-                 <a href="http://nb.poms.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址3</a>
-                 <a href="{{ data['dlink'] }}">地址4</a>
-             </div>
+            {% if data['isdir'] == 0 %}
+              <div class="container-fluid result" style="width:40%;text-align:left;">
+                  <label style="font-size:18px; color:#5E5E5E; margin-right:15px">{{ data['server_filename'] }}</label>
+                  <a href="http://nb.cache.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址1(推荐)</a>
+                  <a href="http://pcs.dcdn.baidu.com/file/{{ data['dlink'].split('file/')[1] }}">地址2(推荐)</a>
+                  <a href="http://nb.poms.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址3</a>
+                  <a href="{{ data['dlink'] }}">地址4</a>
+              </div>
+            {% else %}
+              <div class="container-fluid result" style="width:40%;text-align:left;">
+                  <label style="font-size:18px; color:#5E5E5E; margin-right:15px">{{ data['server_filename'] }}</label>
+                  <a href="{{ data['dlink'] }}">地址1</a>
+              </div>
+            {% endif  %}
           {% endfor %}
         {% endif %}
         <div class="tips"><span class ="text-warning">温馨提示：下载前请在浏览器中打开下载链接测试下载链接是否有效</span></div>
