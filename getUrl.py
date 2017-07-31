@@ -48,6 +48,7 @@ def generateLink(url,cookie,outputlists,sekey=None,fileinfo=None):
             dataDict['dlink'] = tempLink
             dataDict['server_filename'] = fileinfo['server_filename']
             dataDict['isdir'] = 0
+            dataDict['8hlink'] = list['dlink']
             outputlists.append(dataDict)
     else:
         dataDict['server_filename'] = '[文件夹] '+fileinfo['server_filename']

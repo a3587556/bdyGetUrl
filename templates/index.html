@@ -73,12 +73,13 @@
         {% if linkData %}
           {% for data in linkData %}
             {% if data['isdir'] == 0 %}
-              <div class="container-fluid result" style="width:40%;text-align:left;">
+              <div class="container-fluid result">
                   <label style="font-size:18px; color:#5E5E5E; margin-right:15px">{{ data['server_filename'] }}</label>
                   <a href="http://nb.cache.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址1(推荐)</a>
                   <a href="http://pcs.dcdn.baidu.com/file/{{ data['dlink'].split('file/')[1] }}">地址2(推荐)</a>
                   <a href="http://nb.poms.baidupcs.com/file/{{ data['dlink'].split('file/')[1] }}">地址3</a>
                   <a href="{{ data['dlink'] }}">地址4</a>
+                  <a href="{{ data['8hlink'] }}">地址5(8h有效期)</a>
               </div>
             {% else %}
               <div class="container-fluid result" style="width:40%;text-align:left;">
